@@ -14,6 +14,9 @@ public class PrefabViewWindow : EditorWindow {
 	void OnEnable () {
 		if (null == treeViewState)
 			treeViewState = new TreeViewState ();
+		if (selectPrefab != null)
+			prefabTreeView = new PrefabTreeView(treeViewState, selectPrefab);
+		else prefabTreeView = null;
 	}
 
 	[MenuItem ("PrefabView/PrefabViewWindow")]
@@ -22,19 +25,21 @@ public class PrefabViewWindow : EditorWindow {
 	}
 
 	private void OnGUI () {
-		if (null != selectPrefab) {
+		if (null != selectPrefab && prefabTreeView != null) {
 			Rect rect = GUILayoutUtility.GetRect (0, 100000, 0, 100000);
-			prefabTreeView = new PrefabTreeView (treeViewState, selectPrefab);
-
 			prefabTreeView.OnGUI (rect);
-			prefabTreeView.ExpandAll ();
-		} else {
-
 		}
 	}
 
-	void OnSelectionChange () {
-		selectPrefab = Selection.activeObject as GameObject;
+	void OnSelectionChange ()
+	{
+		GameObject curSelectPrefab = Selection.activeObject as GameObject;
+		if (curSelectPrefab == null) return;
+		if (curSelectPrefab != selectPrefab)
+		{
+			selectPrefab = Selection.activeObject as GameObject;
+			prefabTreeView = new PrefabTreeView(treeViewState,selectPrefab);
+		}
         Repaint();
 	}
 }

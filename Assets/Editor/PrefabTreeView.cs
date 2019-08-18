@@ -30,28 +30,36 @@ public class PrefabTreeView : TreeView {
     private Transform[] childs;
     private GameObjectTreeViewItem[] items;
     public PrefabTreeView (TreeViewState state, GameObject go) : base (state) {
-        treeGameObject = go;
-        childs = treeGameObject.GetComponentsInChildren<Transform> (true);
-        items = new GameObjectTreeViewItem[childs.Length];
-        #region Init Items Parent
-        for (int i = 0; i < childs.Length; i++) {
-            items[i] = new GameObjectTreeViewItem ();
-            items[i].treeViewTrans = childs[i];
-            if (childs[i].parent != null)
-                items[i].parent = childs[i].parent;
-        }
-        #endregion
+        if (go != null)
+        {
+            treeGameObject = go;
+            childs = treeGameObject.GetComponentsInChildren<Transform> (true);
+            items = new GameObjectTreeViewItem[childs.Length];
+            #region Init Items Parent
+            for (int i = 0; i < childs.Length; i++) {
+                items[i] = new GameObjectTreeViewItem ();
+                items[i].treeViewTrans = childs[i];
+                if (childs[i].parent != null)
+                    items[i].parent = childs[i].parent;
+            }
+            #endregion
 
-        #region Init Child Transform
-        for (int i = 0; i < childs.Length; i++) {
-            for (int j = 0; j < items.Length; j++) {
-                if (items[j].IsChild (childs[i])) {
-                    items[j].AddChildTransform (childs[i]);
-                    break;
+            #region Init Child Transform
+            for (int i = 0; i < childs.Length; i++) {
+                for (int j = 0; j < items.Length; j++) {
+                    if (items[j].IsChild (childs[i])) {
+                        items[j].AddChildTransform (childs[i]);
+                        break;
+                    }
                 }
             }
+            #endregion
         }
-        #endregion
+        else
+        {
+            childs = null;
+            items = null;
+        }
         Reload ();
     }
 
@@ -78,29 +86,42 @@ public class PrefabTreeView : TreeView {
     }
 
     protected override TreeViewItem BuildRoot () {
+        
         TreeViewItem root = new TreeViewItem { id = 0, depth = -1, displayName = "root" };
-        TreeViewItem[] childItems = new TreeViewItem[childs.Length];
-        for (int i = 0; i < childs.Length; i++) {
-            childItems[i] = new TreeViewItem { id = i + 1, displayName = childs[i].name };
-            GameObjectTreeViewItem item = GetGameObjectTreeViewItem (items, childs[i]);
-            if (null != item) {
-                item.viewItem = childItems[i];
+        if (childs != null && items != null)
+        {
+            TreeViewItem[] childItems = new TreeViewItem[childs.Length];
+            for (int i = 0; i < childs.Length; i++)
+            {
+                childItems[i] = new TreeViewItem {id = i + 1, displayName = childs[i].name};
+                GameObjectTreeViewItem item = GetGameObjectTreeViewItem(items, childs[i]);
+                if (null != item)
+                {
+                    item.viewItem = childItems[i];
+                }
             }
-        }
-        root.AddChild (childItems[0]);
-        for (int i = 0; i < childItems.Length; i++) {
-            GameObjectTreeViewItem temp = GetGameObjectTreeViewItem (items, childItems[i]);
-            if (temp != null && temp.childs != null) {
-                for (int j = 0; j < temp.childs.Count; j++) {
-                    GameObjectTreeViewItem childItem = GetGameObjectTreeViewItem (items, temp.childs[j]);
-                    if (childItem != null && childItem.viewItem != null) {
-                        childItems[i].AddChild (childItem.viewItem);
+
+            root.AddChild(childItems[0]);
+            for (int i = 0; i < childItems.Length; i++)
+            {
+                GameObjectTreeViewItem temp = GetGameObjectTreeViewItem(items, childItems[i]);
+                if (temp != null && temp.childs != null)
+                {
+                    for (int j = 0; j < temp.childs.Count; j++)
+                    {
+                        GameObjectTreeViewItem childItem = GetGameObjectTreeViewItem(items, temp.childs[j]);
+                        if (childItem != null && childItem.viewItem != null)
+                        {
+                            childItems[i].AddChild(childItem.viewItem);
+                        }
                     }
                 }
             }
         }
 
+
         SetupDepthsFromParentsAndChildren (root);
         return root;
+        
     }
 }
